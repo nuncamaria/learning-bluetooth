@@ -2,26 +2,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Request legacy Bluetooth permissions on older devices. -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- Needed only if your app looks for Bluetooth devices.
+         If your app doesn't use Bluetooth scan results to derive physical
+         location information, you can
+         android:usesPermissionFlags="neverForLocation". -->
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
-    <!--
-      neverForLocation es porque a veces el Bluetooth tiene por defecto la posibilidad de trakear al usuario
-      y para eso es obligatorio añadir el permiso de localización,
-      pero sino vas a hacerlo para evitarte añadirlo has de poner esto.
-    -->
 
-    <uses-feature android:name="android.hardware.bluetooth" />
-    <!--
-      También existe el bluetooth_le para declarar el Bluetooth Low Energy.
-      La diferencia es que la normal es para enviar grandes cantidades de datos
-      y la low energy para mantener una conexión en background o enviar pequeñas cantidades de información.
-     -->
+    <!-- Needed only if your app communicates with already-paired Bluetooth
+         devices. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <uses-feature android:name="android.hardware.bluetooth" android:required="true"/>
 
     <application
         android:allowBackup="true"
