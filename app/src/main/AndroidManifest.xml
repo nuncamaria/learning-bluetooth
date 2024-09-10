@@ -2,6 +2,27 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <!--
+      neverForLocation es porque a veces el Bluetooth tiene por defecto la posibilidad de trakear al usuario
+      y para eso es obligatorio añadir el permiso de localización,
+      pero sino vas a hacerlo para evitarte añadirlo has de poner esto.
+    -->
+
+    <uses-feature android:name="android.hardware.bluetooth" />
+    <!--
+      También existe el bluetooth_le para declarar el Bluetooth Low Energy.
+      La diferencia es que la normal es para enviar grandes cantidades de datos
+      y la low energy para mantener una conexión en background o enviar pequeñas cantidades de información.
+     -->
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,7 +36,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.LearningBluetooth">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
