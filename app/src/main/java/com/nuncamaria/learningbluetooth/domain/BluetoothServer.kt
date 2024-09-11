@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +35,12 @@ object BluetoothServer {
     private val _pairedDevices = MutableStateFlow<List<BluetoothDevice>>(emptyList())
     val pairedDevices = _pairedDevices.asStateFlow()
 
+    private val foundDeviceReceiver = FoundDeviceReceiver { device ->
+        _scannedDevices.update { devices ->
+            if (device in devices) devices else devices
+        }
+    }
+
     init {
         updatePairedDevices()
     }
@@ -46,12 +53,26 @@ object BluetoothServer {
             return
         }
 
+        app.registerReceiver(
+            foundDeviceReceiver,
+            IntentFilter(BluetoothDevice.ACTION_FOUND)
+        )
+
         // and if we had the scan permission lets:
         updatePairedDevices()
         bluetoothAdapter?.startDiscovery()
     }
 
     fun stopServer() {
+        if (!hasPermission(android.Manifest.permission.BLUETOOTH_SCAN)) {
+            return
+        }
+
+        bluetoothAdapter?.cancelDiscovery()
+    }
+
+    fun release() {
+        app?.unregisterReceiver(foundDeviceReceiver)
     }
 
     private fun updatePairedDevices() {
