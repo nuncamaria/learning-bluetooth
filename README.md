@@ -15,6 +15,10 @@
 - To be paired means that two devices are aware of each other's existence, have a shared link-key that can be used for authentication, and are capable of establishing an encrypted connection with each other.
 - To be connected means that the devices currently share an RFCOMM channel and are able to transmit data with each other. The current Bluetooth APIs require devices to be paired before an RFCOMM connection can be established. Pairing is automatically performed when you initiate an encrypted connection with the Bluetooth APIs.
 
+
+## Other Specifications
+- Koin for dependency injection
+
 ### Documentation
 
 https://developer.android.com/develop/connectivity/bluetooth/setup
