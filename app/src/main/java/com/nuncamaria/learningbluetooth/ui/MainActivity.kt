@@ -32,9 +32,7 @@ class MainActivity : ComponentActivity() {
         ) { permission ->
             val canEnableBluetooth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 permission[android.Manifest.permission.BLUETOOTH_CONNECT] == true
-            } else {
-                true
-            }
+            } else true
 
             if (canEnableBluetooth && !isBluetoothEnabled) {
                 enableBluetoothLauncher.launch(
@@ -43,12 +41,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        permissionLauncher.launch(
-            arrayOf(
-                android.Manifest.permission.BLUETOOTH_SCAN,
-                android.Manifest.permission.BLUETOOTH_CONNECT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.BLUETOOTH_SCAN,
+                    android.Manifest.permission.BLUETOOTH_CONNECT
+                )
             )
-        )
+        }
 
         setContent {
             LearningBluetoothTheme { MainView() }
