@@ -9,7 +9,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import com.nuncamaria.learningbluetooth.ui.theme.LearningBluetoothTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,7 +19,6 @@ class MainActivity : ComponentActivity() {
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled == true
 
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -32,8 +30,11 @@ class MainActivity : ComponentActivity() {
         val permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permission ->
-            val canEnableBluetooth =
+            val canEnableBluetooth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 permission[android.Manifest.permission.BLUETOOTH_CONNECT] == true
+            } else {
+                true
+            }
 
             if (canEnableBluetooth && !isBluetoothEnabled) {
                 enableBluetoothLauncher.launch(
