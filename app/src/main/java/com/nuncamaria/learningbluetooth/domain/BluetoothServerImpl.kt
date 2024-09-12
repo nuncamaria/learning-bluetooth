@@ -1,7 +1,6 @@
 package com.nuncamaria.learningbluetooth.domain
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -14,11 +13,8 @@ import kotlinx.coroutines.flow.update
 @SuppressLint("MissingPermission")
 class BluetoothServerImpl(private val ctx: Context) : BluetoothServer {
 
-    // hold reference to app context to run the chat server
-    private var app: Application? = null
-
     private val bluetoothManager by lazy {
-        app?.getSystemService(BluetoothManager::class.java)
+        ctx.getSystemService(BluetoothManager::class.java)
     }
 
     // If the app is installed on an emulator without bluetooth then the app will crash
@@ -73,18 +69,20 @@ class BluetoothServerImpl(private val ctx: Context) : BluetoothServer {
     }
 
     fun release() {
-        app?.unregisterReceiver(foundDeviceReceiver)
+        ctx.unregisterReceiver(foundDeviceReceiver)
     }
 
     private fun updatePairedDevices() {
         if (!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
-            bluetoothAdapter?.bondedDevices.also {
-                _pairedDevices.update { it }
-            }
+            return
+        }
+
+        bluetoothAdapter?.bondedDevices.also {
+            _pairedDevices.update { it }
         }
     }
 
     private fun hasPermission(permission: String): Boolean {
-        return app?.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
+        return ctx.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
     }
 }
