@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.nuncamaria.learningbluetooth.ui.theme.Typography
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,8 +30,6 @@ import org.koin.androidx.compose.koinViewModel
 internal fun MainView(viewModel: MainViewModel = koinViewModel()) {
 
     val state = viewModel.state.collectAsState()
-
-    val ctx = LocalContext.current
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -55,11 +53,11 @@ internal fun MainView(viewModel: MainViewModel = koinViewModel()) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(onClick = {viewModel.startScan() }) {
+                Button(onClick = { viewModel.startScan() }) {
                     Text(text = "Scan devices")
                 }
 
-                Button(onClick = {viewModel.stopScan() }) {
+                Button(onClick = { viewModel.stopScan() }) {
                     Text(text = "Close connection")
                 }
             }
@@ -81,9 +79,9 @@ fun BluetoothDeviceList(
         item {
             Text(
                 text = "Paired Devices",
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                modifier = Modifier.padding(16.dp)
+                style = Typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(vertical = 16.dp)
             )
         }
         items(pairedDevices) { device ->
@@ -92,16 +90,15 @@ fun BluetoothDeviceList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onClick(device) }
-                    .padding(16.dp)
             )
         }
 
         item {
             Text(
                 text = "Scanned Devices",
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                modifier = Modifier.padding(16.dp)
+                style = Typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(vertical = 16.dp)
             )
         }
         items(scannedDevices) { device ->
@@ -110,7 +107,6 @@ fun BluetoothDeviceList(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onClick(device) }
-                    .padding(16.dp)
             )
         }
     }
