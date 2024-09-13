@@ -22,3 +22,4 @@
 ### Documentation
 
 https://developer.android.com/develop/connectivity/bluetooth/setup
+https://github.com/android/connectivity-samples/blob/main/BluetoothLeChat/app/src/main/java/com/example/bluetoothlechat/bluetooth/ChatServer.kt#L72
