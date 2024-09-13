@@ -10,6 +10,8 @@ class FoundDeviceReceiver(
     private val onDeviceFound: (BluetoothDevice) -> Unit
 ) : BroadcastReceiver() {
 
+    // This is needed to allow the app to discover Bluetooth devices
+
     override fun onReceive(ctx: Context?, intent: Intent?) {
         when (intent?.action) {
             BluetoothDevice.ACTION_FOUND -> {
