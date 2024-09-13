@@ -8,3 +8,5 @@ import java.util.UUID
  * https://www.uuidgenerator.net/version4
  */
 val SERVICE_UUID: UUID = UUID.fromString("1ab1711a-2e34-4b74-911c-6f99379e6787")
+
+val SERVICE_NAME: String = "Chat-service"

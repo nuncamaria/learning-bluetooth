@@ -3,11 +3,15 @@ package com.nuncamaria.learningbluetooth.domain
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 
 @SuppressLint("MissingPermission")
@@ -37,6 +41,9 @@ class BluetoothServerImpl(private val ctx: Context) : BluetoothServer {
             if (device in devices) devices else devices
         }
     }
+
+    private var currentServerSocket: BluetoothServerSocket? = null
+    private val currentClientSocket: BluetoothSocket? = null
 
     init {
         updatePairedDevices()
@@ -68,7 +75,28 @@ class BluetoothServerImpl(private val ctx: Context) : BluetoothServer {
         bluetoothAdapter?.cancelDiscovery()
     }
 
-    fun release() {
+    override fun startConnection(): Flow<DeviceConnectionResult> = flow {
+        if (!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
+            throw SecurityException("No BLUETOOTH_CONNECT permission")
+        }
+
+        // After check the permission, we need to use the bluetoothAdapter to launch the server
+        currentServerSocket = bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME, SERVICE_UUID)
+    }
+
+    override fun pairToDevice(device: BluetoothDevice): Flow<DeviceConnectionResult> = flow {
+        if (!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
+            emit(DeviceConnectionResult.Connected)
+        } else {
+            emit(DeviceConnectionResult.Error("Pairing Error"))
+        }
+    }
+
+    override fun closeConnection(): Flow<DeviceConnectionResult> = flow {
+        emit(DeviceConnectionResult.Disconnected)
+    }
+
+    override fun unregisterReceiver() {
         ctx.unregisterReceiver(foundDeviceReceiver)
     }
 
