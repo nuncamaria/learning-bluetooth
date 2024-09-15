@@ -17,7 +17,7 @@ interface BluetoothServer {
     // Needs to be a flow because we want to keep on listening events as long as we have Bluetooth connection established
     fun startConnection(): Flow<DeviceConnectionResult>
     fun pairToDevice(device: BluetoothDevice): Flow<DeviceConnectionResult>
-    fun closeConnection(): Flow<DeviceConnectionResult>
+    fun closeConnection()
 
     // Release device
     fun unregisterReceiver()

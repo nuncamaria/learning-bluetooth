@@ -8,11 +8,15 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
+import java.io.IOException
 
 @SuppressLint("MissingPermission")
 class BluetoothServerImpl(private val ctx: Context) : BluetoothServer {
@@ -43,7 +47,7 @@ class BluetoothServerImpl(private val ctx: Context) : BluetoothServer {
     }
 
     private var currentServerSocket: BluetoothServerSocket? = null
-    private val currentClientSocket: BluetoothSocket? = null
+    private var currentClientSocket: BluetoothSocket? = null
 
     init {
         updatePairedDevices()
@@ -75,25 +79,62 @@ class BluetoothServerImpl(private val ctx: Context) : BluetoothServer {
         bluetoothAdapter?.cancelDiscovery()
     }
 
+
+    // Two main functions to start Bluetooth are startConnection() and pairToDevice(device)
     override fun startConnection(): Flow<DeviceConnectionResult> = flow {
         if (!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
-            throw SecurityException("No BLUETOOTH_CONNECT permission")
+            throw SecurityException("Error: No BLUETOOTH_CONNECT permission, ::startConnection")
         }
 
         // After check the permission, we need to use the bluetoothAdapter to launch the server
-        currentServerSocket = bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME, SERVICE_UUID)
-    }
+        currentServerSocket =
+            bluetoothAdapter?.listenUsingRfcommWithServiceRecord(SERVICE_NAME, SERVICE_UUID)
+
+        // Now we want to keep on looking for connections as long as we want to accept connections
+        var shouldLoop = true
+        while (shouldLoop) {
+            currentClientSocket = try {
+                currentServerSocket?.accept() // this line returns a BluetoothSocket, por eso igualamos nuestro currentClientSocket a este resultado, necesitamos saber si la conexión se ha aceptado o ha de cerrarse
+            } catch (e: IOException) {
+                shouldLoop = false
+                null
+            }
+            emit(DeviceConnectionResult.Connected)
+            currentClientSocket?.let {
+                currentServerSocket?.close()
+            }
+        }
+    }.onCompletion {
+        closeConnection()
+    }.flowOn(Dispatchers.IO) // IO Thread is the right one for a Bluetooth connection
 
     override fun pairToDevice(device: BluetoothDevice): Flow<DeviceConnectionResult> = flow {
         if (!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)) {
-            emit(DeviceConnectionResult.Connected)
-        } else {
-            emit(DeviceConnectionResult.Error("Pairing Error"))
+            throw SecurityException("Error: No BLUETOOTH_CONNECT permission, ::pairToDevice")
         }
-    }
 
-    override fun closeConnection(): Flow<DeviceConnectionResult> = flow {
-        emit(DeviceConnectionResult.Disconnected)
+        currentClientSocket = device.createRfcommSocketToServiceRecord(SERVICE_UUID)
+        stopServer()
+
+        currentClientSocket?.let { socket ->
+            try {
+                socket.connect()
+                emit(DeviceConnectionResult.Connected)
+            } catch (e: IOException) {
+                socket.close()
+                currentClientSocket = null
+                emit(DeviceConnectionResult.Error("Error: Connection interrupted"))
+            }
+        }
+    }.onCompletion {
+        closeConnection()
+    }.flowOn(Dispatchers.IO) // IO Thread is the right one for a Bluetooth connection
+
+    override fun closeConnection() {
+        currentClientSocket?.close()
+        currentServerSocket?.close()
+        currentClientSocket = null
+        currentServerSocket = null
     }
 
     override fun unregisterReceiver() {
