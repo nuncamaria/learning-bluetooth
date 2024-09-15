@@ -1,4 +1,4 @@
-package com.nuncamaria.learningbluetooth.domain
+package com.nuncamaria.learningbluetooth.domain.brodcastreceiver
 
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
