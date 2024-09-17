@@ -2,6 +2,7 @@ package com.nuncamaria.learningbluetooth.ui
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,11 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +33,19 @@ import org.koin.androidx.compose.koinViewModel
 internal fun MainView(viewModel: MainViewModel = koinViewModel()) {
 
     val state = viewModel.state.collectAsState()
+    val ctx = LocalContext.current
+
+    LaunchedEffect(state.value.errorMessage) {
+        state.value.errorMessage?.let { message ->
+            Toast.makeText(ctx, message, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    LaunchedEffect(state.value.isConnected) {
+        if (state.value.isConnected) {
+            Toast.makeText(ctx, "Device connected", Toast.LENGTH_LONG).show()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -40,14 +56,24 @@ internal fun MainView(viewModel: MainViewModel = koinViewModel()) {
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            BluetoothDeviceList(
-                pairedDevices = state.value.pairedDevices,
-                scannedDevices = state.value.scannedDevices,
-                onClick = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            )
+            when {
+                state.value.isLoading -> {
+                    CircularProgressIndicator()
+                }
+
+                else -> {
+                    BluetoothDeviceList(
+                        pairedDevices = state.value.pairedDevices,
+                        scannedDevices = state.value.scannedDevices,
+                        onDeviceClick = {
+                            viewModel.connectToDevice(it)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    )
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -70,7 +96,7 @@ internal fun MainView(viewModel: MainViewModel = koinViewModel()) {
 fun BluetoothDeviceList(
     pairedDevices: List<BluetoothDevice>,
     scannedDevices: List<BluetoothDevice>,
-    onClick: (BluetoothDevice) -> Unit,
+    onDeviceClick: (BluetoothDevice) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -89,7 +115,7 @@ fun BluetoothDeviceList(
                 text = device.name ?: "(No name)",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onClick(device) }
+                    .clickable { onDeviceClick(device) }
             )
         }
 
@@ -106,7 +132,7 @@ fun BluetoothDeviceList(
                 text = device.name ?: "(No name)",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onClick(device) }
+                    .clickable { onDeviceClick(device) }
             )
         }
     }
